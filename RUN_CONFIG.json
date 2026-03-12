@@ -1,0 +1,17 @@
+{
+  "isProd": false,
+  "resolution_min": 15,
+  "spot_price_eur_per_MWh_file_path": "DE_SPOT_PRICE_20260309_20260312_15MIN_RESOLUTION.csv",
+  "scale_spot_price": 1,
+  "load_forecast_W_file_path": "Summer_scenario_9_days.csv",
+  "scale_load_forecast": 1e3,
+  "renewable_generation_forecast_W_file_path": "Summer_scenario_9_days.csv",
+  "scale_renewable_generation": 1e3,
+  "renewable_feed_in_tariff_cents_per_kWh": 5.5,
+  "bess_nominal_power_W": 10000,
+  "bess_nominal_energy_capacity_Wh": 20000,
+  "bess_round_trip_eff": 0.99,
+  "bess_inv_charging_eff": 0.95,
+  "bess_inv_discharging_eff": 0.92,
+  "start_soc": 0.05
+}
