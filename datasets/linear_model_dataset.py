@@ -11,15 +11,18 @@ class LinearMILPDataset(BaseDataset):
 
     name = "linear_milp_bess_database"
 
-    requirements = ["pandas", "numpy"]
+    requirements = ["numpy"]
 
     parameters = {}
 
+    def __init__(self, config_path):
+        super().__init__()
+        self.config_path = config_path
+
     def get_data(self):
-        ROOT_DIR = Path(__file__).resolve().parent.parent
 
         # ======================== gather the ESS config ========================
-        config_path = ROOT_DIR / "ESS_CONFIG.json"
+        config_path = Path(self.config_path) / "ESS_CONFIG.json"
         with open(config_path, "r") as f:
             config = json.load(f)
 
@@ -62,7 +65,7 @@ class LinearMILPDataset(BaseDataset):
             )
 
         # ======================== gather the RUN config ========================
-        config_path = ROOT_DIR / "RUN_CONFIG.json"
+        config_path = Path(self.config_path) / "RUN_CONFIG.json"
         with open(config_path, "r") as f:
             config = json.load(f)
 

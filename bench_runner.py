@@ -26,9 +26,9 @@ SOLVERS = {
 # ----------------------------------------------------
 # BenchOpt execution pipeline
 # ----------------------------------------------------
-def run_one(dataset_cls, solver_cls):
+def run_one(dataset_cls, solver_cls, config_path):
 
-    dataset = dataset_cls()
+    dataset = dataset_cls(config_path=config_path)
     objective = Objective()
     solver = solver_cls()
 
@@ -80,16 +80,30 @@ def run_main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
+        "--config-path",
+        type=str,
+        required=True,  # make it required or set False for optional
+        default=None,
+        help="Path to the config file (YAML/JSON) for the benchmark",
+    )
+
+    parser.add_argument(
         "--solver", default="all", choices=["all"] + list(SOLVERS.keys())
     )
     args = parser.parse_args()
 
     solvers = SOLVERS if args.solver == "all" else {args.solver: SOLVERS[args.solver]}
 
+    config_path = args.config_path
+    if config_path is None or config_path == "":
+        raise ValueError(
+            "Config path not specified. call benchmark script with argument --config_path"
+        )
+
     for sname, scls in solvers.items():
         print(f"\nRunning solver={sname}")
 
-        output = run_one(DATASETS[sname], scls)
+        output = run_one(DATASETS[sname], scls, config_path=config_path)
         save_output(output, sname)
 
 
