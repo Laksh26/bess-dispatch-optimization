@@ -14,7 +14,7 @@ from datasets.linear_model_dataset import LinearMILPDataset
 
 DATASETS = {
     "baseline": BaselineDataset,
-    "linear": LinearMILPDataset,
+    "linear_milp": LinearMILPDataset,
 }
 
 SOLVERS = {
@@ -56,7 +56,7 @@ def run_one(dataset_cls, solver_cls):
 # ----------------------------------------------------
 # Save results
 # ----------------------------------------------------
-def save_output(output, dataset_name, solver_name):
+def save_output(output, solver_name):
     output_serializable = {
         "solution": {k: v.tolist() for k, v in output["solution"].items()},
         "metrics": output["metrics"],
@@ -65,7 +65,7 @@ def save_output(output, dataset_name, solver_name):
     results_dir = Path(__file__).parent / "results"
     results_dir.mkdir(exist_ok=True)
 
-    output_file = results_dir / f"{dataset_name}_{solver_name}.json"
+    output_file = results_dir / f"{solver_name}.json"
 
     with open(output_file, "w") as f:
         json.dump(output_serializable, f, indent=4)
@@ -78,26 +78,19 @@ def save_output(output, dataset_name, solver_name):
 # ----------------------------------------------------
 def run_main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--dataset", default="all", choices=["all"] + list(DATASETS.keys())
-    )
+
     parser.add_argument(
         "--solver", default="all", choices=["all"] + list(SOLVERS.keys())
     )
     args = parser.parse_args()
 
-    datasets = (
-        DATASETS if args.dataset == "all" else {args.dataset: DATASETS[args.dataset]}
-    )
     solvers = SOLVERS if args.solver == "all" else {args.solver: SOLVERS[args.solver]}
 
-    for dname, dcls in datasets.items():
-        for sname, scls in solvers.items():
-            print(f"\nRunning dataset={dname} solver={sname}")
+    for sname, scls in solvers.items():
+        print(f"\nRunning solver={sname}")
 
-            output = run_one(dcls, scls)
-
-            save_output(output, dname, sname)
+        output = run_one(DATASETS[sname], scls)
+        save_output(output, sname)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,23 @@
+{
+  "isProd": false,
+  "isMachineGenerated": true,
+  "ess_count": 2,
+  "ess_details": {
+    "ess1": {
+      "bess_nominal_energy_capacity_Wh": 70000,
+      "round_trip_eff_at_half_nom_power": 0.99,
+      "inv_nominal_power_W": 30000,
+      "inv_charging_eff": 0.95,
+      "inv_discharging_eff": 0.92,
+      "minimum_operation_power_W": 100
+    },
+    "ess2": {
+      "bess_nominal_energy_capacity_Wh": 100000,
+      "round_trip_eff_at_half_nom_power": 0.90,
+      "inv_nominal_power_W": 20000,
+      "inv_charging_eff": 0.95,
+      "inv_discharging_eff": 0.92,
+      "minimum_operation_power_W": 100
+    }
+  }
+}

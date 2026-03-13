@@ -12,31 +12,41 @@ class LinearMILPSolver(BaseSolver):
     def set_objective(
         self,
         T,
-        price,
+        N_bess,
+        dt,
         load,
         renewable_generation,
+        price,
         renewable_feed_in_tariff,
+        is_ess_available_for_operation,
         P_nom,
+        min_operation_power,
         E_nom,
         batt_eff,
         inv_eff_ch,
         inv_eff_dch,
-        dt,
         soe_start,
+        temp_start,
     ):
 
         self.T = range(T)
+        self.N_bess = range(N_bess)
+        self.dt = dt
+
         self.load = load
         self.renewable_generation = renewable_generation
         self.price = price
         self.renewable_feed_in_tariff = renewable_feed_in_tariff
+
         self.P_nom = P_nom
+        self.min_operation_power = min_operation_power
         self.E_nom = E_nom
         self.batt_eff = batt_eff
         self.inv_eff_ch = inv_eff_ch
         self.inv_eff_dch = inv_eff_dch
-        self.dt = dt
+
         self.soe_start = soe_start
+        self.temp_start = temp_start
 
     def run(self, n_iter=1):
 
@@ -52,12 +62,17 @@ class LinearMILPSolver(BaseSolver):
         self.p_grid_purchase = np.array(
             [float(pyo.value(model.p_grid_purchase[t])) for t in model.T]
         )
-        self.p_ch = np.array([float(pyo.value(model.p_ch[t])) for t in model.T])
-        self.p_dch = np.array([float(pyo.value(model.p_dch[t])) for t in model.T])
-        self.soe = np.array([float(pyo.value(model.soe[t])) for t in model.T])
+        self.p_ch = np.array(
+            [[float(pyo.value(model.p_ch[b, t])) for t in model.T] for b in model.B]
+        )
+        self.p_dch = np.array(
+            [[float(pyo.value(model.p_dch[b, t])) for t in model.T] for b in model.B]
+        )
+        self.soe = np.array(
+            [[float(pyo.value(model.soe[b, t])) for t in model.T] for b in model.B]
+        )
 
     def get_result(self):
-
         return dict(
             p_grid_sale=self.p_grid_sale,
             p_grid_purchase=self.p_grid_purchase,
@@ -81,54 +96,77 @@ class LinearMILPSolver(BaseSolver):
         model = pyo.ConcreteModel()
 
         model.T = pyo.Set(initialize=self.T)
+        model.B = pyo.Set(initialize=self.N_bess)
 
         # power of BESS inverter - ch: Charging direction, dch: Discharging direction
-        model.p_ch = pyo.Var(model.T, bounds=(0, self.P_nom))
-        model.p_dch = pyo.Var(model.T, bounds=(0, self.P_nom))
+        def power_bounds(m, b, t):
+            return 0, self.P_nom[b]
+
+        model.p_ch = pyo.Var(model.B, model.T, bounds=power_bounds)
+        model.p_dch = pyo.Var(model.B, model.T, bounds=power_bounds)
 
         # modeled State of Energy of the BESS
-        model.soe = pyo.Var(model.T, bounds=(0, 1))
+        def soe_bounds(m, b, t):
+            return 0, 1
+
+        model.soe = pyo.Var(model.B, model.T, bounds=soe_bounds)
 
         # Binary variable to let the BESS to either charge or discharge at a given T. 1 --> charging, 0--> Discharging
         # When power is 0, b_op is valid with both 1 or 0
-        model.b_op = pyo.Var(model.T, within=pyo.Binary)
+        model.b_op = pyo.Var(model.B, model.T, within=pyo.Binary)
 
         # prevent simultaneous charge/discharge
-        def charge_limit(m, t):
-            return m.p_ch[t] <= self.P_nom * m.b_op[t]
+        def charge_limit(m, b, t):
+            return m.p_ch[b, t] <= self.P_nom[b] * m.b_op[b, t]
 
-        model.charge_limit = pyo.Constraint(model.T, rule=charge_limit)
+        model.charge_limit = pyo.Constraint(model.B, model.T, rule=charge_limit)
 
-        def discharge_limit(m, t):
-            return m.p_dch[t] <= self.P_nom * (1 - m.b_op[t])
+        # min charge power
+        def min_charge_power(m, b, t):
+            return m.p_ch[b, t] >= self.min_operation_power[b] * m.b_op[b, t]
 
-        model.discharge_limit = pyo.Constraint(model.T, rule=discharge_limit)
+        model.min_charge_power = pyo.Constraint(model.B, model.T, rule=min_charge_power)
+
+        def discharge_limit(m, b, t):
+            return m.p_dch[b, t] <= self.P_nom[b] * (1 - m.b_op[b, t])
+
+        model.discharge_limit = pyo.Constraint(model.B, model.T, rule=discharge_limit)
+
+        # min discharge power
+        def min_discharge_power(m, b, t):
+            return m.p_dch[b, t] >= self.min_operation_power[b] * (1 - m.b_op[b, t])
+
+        model.min_discharge_power = pyo.Constraint(
+            model.B, model.T, rule=min_discharge_power
+        )
 
         # SoE dynamics
-        def soe_rule(m, t):
+        def soe_rule(m, b, t):
 
             if t == 0:
-                prev = self.soe_start
+                prev = self.soe_start[b]
             else:
-                prev = m.soe[t - 1]
+                prev = m.soe[b, t - 1]
 
             # calculated per direction
-            bat_internal_loss = (1 - np.sqrt(self.batt_eff)) * (m.p_ch[t] + m.p_dch[t])
+            bat_internal_loss = (1 - np.sqrt(self.batt_eff[b])) * (
+                m.p_ch[b, t] + m.p_dch[b, t]
+            )
 
             # inverter losses
-            inv_loss = ((1 - self.inv_eff_ch) * m.p_ch[t]) + (
-                (1 - self.inv_eff_dch) * m.p_dch[t]
+            inv_loss = ((1 - self.inv_eff_ch[b]) * m.p_ch[b, t]) + (
+                (1 - self.inv_eff_dch[b]) * m.p_dch[b, t]
             )
 
             delta_soe = (
-                ((m.p_ch[t] - m.p_dch[t]) - inv_loss - bat_internal_loss)
+                ((m.p_ch[b, t] - m.p_dch[b, t]) - inv_loss - bat_internal_loss)
                 * self.dt
-                / self.E_nom
+                / self.E_nom[b]
             )
 
-            return m.soe[t] == prev + delta_soe
+            return m.soe[b, t] == prev + delta_soe
 
-        model.soe_balance = pyo.Constraint(model.T, rule=soe_rule)
+        model.soe_balance = pyo.Constraint(model.B, model.T, rule=soe_rule)
 
         # grid power
         p_grid_max = 1e6
@@ -158,7 +196,7 @@ class LinearMILPSolver(BaseSolver):
         def power_flow_rule(m, t):
             return self.load[t] - self.renewable_generation[t] == (
                 m.p_grid_purchase[t] - m.p_grid_sale[t]
-            ) + (m.p_dch[t] - m.p_ch[t])
+            ) + sum(m.p_dch[b, t] - m.p_ch[b, t] for b in m.B)
 
         model.power_flow_rule = pyo.Constraint(model.T, rule=power_flow_rule)
 
