@@ -1,0 +1,27 @@
+{
+  "isProd": false,
+  "isMachineGenerated": false,
+  "resolution_min": 60,
+  "ess_states": {
+    "ess1": {
+      "start_soc_0_to_1": 0.5,
+      "start_temperature_degree_C": 25.0,
+      "isAvailable": true
+    },
+    "ess2": {
+      "start_soc_0_to_1": 0.5,
+      "start_temperature_degree_C": 25.0,
+      "isAvailable": true
+    }
+  },
+  "forecast_scalers": {
+    "spot_price_EUR_per_MW": 1
+  },
+  "forecasts": {
+    "spot_price_EUR_per_MWh": [
+      72, 68, 63, 60, 58, 61, 75, 92,
+      105, 110, 102, 78, 60, 55, 58, 80,
+      105, 130, 148, 142, 118, 98, 88, 78
+    ]
+  }
+}

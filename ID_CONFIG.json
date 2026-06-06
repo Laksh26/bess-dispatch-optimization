@@ -1,0 +1,48 @@
+{
+  "isProd": false,
+  "isMachineGenerated": false,
+  "resolution_min": 15,
+  "ess_states": {
+    "ess1": {
+      "start_soc_0_to_1": 0.5,
+      "start_temperature_degree_C": 25.0,
+      "isAvailable": true
+    },
+    "ess2": {
+      "start_soc_0_to_1": 0.5,
+      "start_temperature_degree_C": 25.0,
+      "isAvailable": true
+    }
+  },
+  "forecast_scalers": {
+    "spot_price_EUR_per_MW": 1
+  },
+  "forecasts": {
+    "spot_price_EUR_per_MWh": [
+      74, 72, 70, 71,
+      69, 67, 66, 68,
+      64, 62, 61, 63,
+      61, 59, 58, 60,
+      58, 57, 57, 59,
+      62, 63, 65, 67,
+      74, 78, 82, 87,
+      90, 94, 98, 102,
+      105, 108, 110, 107,
+      112, 111, 109, 107,
+      103, 98, 94, 90,
+      81, 75, 70, 68,
+      63, 59, 57, 55,
+      55, 53, 55, 57,
+      59, 62, 66, 70,
+      78, 84, 90, 96,
+      104, 110, 115, 120,
+      128, 134, 138, 136,
+      148, 153, 151, 147,
+      143, 140, 138, 135,
+      120, 116, 112, 109,
+      100, 97, 95, 97,
+      90, 88, 86, 88,
+      80, 78, 76, 78
+    ]
+  }
+}
