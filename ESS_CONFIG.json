@@ -2,6 +2,12 @@
   "isProd": false,
   "isMachineGenerated": true,
   "ess_count": 2,
+  "pwl_efficiency_fits": {
+    "n_pieces": 10,
+    "inv_ch_loss_fit_W_per_kW": [0.1021, -0.6881, 68.2162],
+    "inv_dch_loss_fit_W_per_kW": [0.1684, -1.9786, 59.9212],
+    "batt_loss_fit_W_per_kW": [-0.4497, 32.6611, -8.5876]
+  },
   "ess_details": {
     "ess1": {
       "bess_nominal_energy_capacity_Wh": 70000,

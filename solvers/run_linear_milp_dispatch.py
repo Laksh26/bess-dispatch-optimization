@@ -27,6 +27,7 @@ class LinearMILPSolver(BaseSolver):
         inv_eff_dch,
         soe_start,
         temp_start,
+        **kwargs,
     ):
 
         self.T = range(T)

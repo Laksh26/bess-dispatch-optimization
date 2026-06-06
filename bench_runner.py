@@ -4,9 +4,17 @@ from pathlib import Path
 
 from solvers.run_basline_dispatch import BaselineSolver
 from solvers.run_linear_milp_dispatch import LinearMILPSolver
+from solvers.run_pwl_milp_dispatch import PieceWiseLinearMILPSolver
+from solvers.run_da_milp_dispatch import DAMILPSolver
+from solvers.run_da_pwl_milp_dispatch import DAPWLMILPSolver
+from solvers.run_id_milp_dispatch import IDMILPSolver
+from solvers.run_id_pwl_milp_dispatch import IDPWLMILPSolver
 from bench_objective import Objective
 from datasets.baseline_dataset import BaselineDataset
 from datasets.linear_model_dataset import LinearMILPDataset
+from datasets.pwl_milp_dataset import PieceWiseLinearMILPDataset
+from datasets.da_trading_dataset import DATradingDataset
+from datasets.id_trading_dataset import IDTradingDataset
 
 # ----------------------------------------------------
 # Registry
@@ -15,11 +23,21 @@ from datasets.linear_model_dataset import LinearMILPDataset
 DATASETS = {
     "baseline": BaselineDataset,
     "linear_milp": LinearMILPDataset,
+    "pwl_milp": PieceWiseLinearMILPDataset,
+    "da_milp": DATradingDataset,
+    "da_pwl_milp": DATradingDataset,
+    "id_milp": IDTradingDataset,
+    "id_pwl_milp": IDTradingDataset,
 }
 
 SOLVERS = {
     "baseline": BaselineSolver,
     "linear_milp": LinearMILPSolver,
+    "pwl_milp": PieceWiseLinearMILPSolver,
+    "da_milp": DAMILPSolver,
+    "da_pwl_milp": DAPWLMILPSolver,
+    "id_milp": IDMILPSolver,
+    "id_pwl_milp": IDPWLMILPSolver,
 }
 
 
